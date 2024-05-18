@@ -1,26 +1,25 @@
 import axios from 'axios'
+const baseURL = import.meta.env.VITE_APP_HOST
 
 const axiosInstance = axios.create({
-  baseURL: 'https://rickandmortyapi.com/api',
+  baseURL,
 })
 
-export const fetchData = async (responseData, selectedStatus, selectedName, page) => {
+export const fetchData = async ({ status, name, page }) => {
   try {
     let params = {}
-
-    if (selectedStatus?.value) params.status = selectedStatus.value
-    if (selectedName?.value) params.name = selectedName.value
+    if (status) params.status = status
+    if (name) params.name = name
     if (page) params.page = page
 
     const response = await axiosInstance.get('/character', { params })
-    responseData.value = response.data
+
+    return { items: response?.data?.results, pages: response?.data?.info?.pages }
 
   } catch (error) {
     if (error.response.status === 404) {
       alert('There is no such name!')
-    } else {
-      alert(`Error: ${error.response.status}`)
     }
-    console.error('Error fetching data:', error)
+    throw error
   }
 }

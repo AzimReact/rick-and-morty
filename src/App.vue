@@ -6,28 +6,39 @@ import Card from './components/Card.vue';
 export default {
   components: { Card },
   setup() {
-    const responseData = ref(null);
-    const selectedStatus = ref('');
-    const selectedName = ref('');
-    const selectedPage = ref(1); 
+    const characters = ref(null);
+    const pagesCount = ref(1);
+    const status = ref('');
+    const name = ref('');
+    const currentPage = ref(1); 
 
-    onMounted(() => {
-      fetchData(responseData);
-    });
+    const loadData = async () => {
+      const { items, pages } = await fetchData({
+        status: status.value,
+        name: name.value,
+        page: currentPage.value,
+      });
+      characters.value = items;
+      pagesCount.value = pages;
+    };
+
+    onMounted(loadData);
     
     const applyFilter = async () => {
-      await fetchData(responseData, selectedStatus, selectedName )
-    }
+      currentPage.value = 1;
+      await loadData();
+    };
 
     const paginate = async () => {
-      await fetchData(responseData, selectedStatus, selectedName, selectedPage.value);
+      await loadData();
     };
 
     return {
-      responseData,
-      selectedStatus,
-      selectedName,
-      selectedPage,
+      characters,
+      pagesCount,
+      status,
+      name,
+      currentPage,
       applyFilter,
       paginate
     };
@@ -39,26 +50,26 @@ export default {
   <header>
     <h1 class="title">The Rick and Morty</h1>
     <div class="filter-container">
-      <select v-model="selectedStatus">
+      <select v-model="status">
         <option value="" selected>All</option>
         <option value="alive">Alive</option>
         <option value="dead">Dead</option>
         <option value="unknown">Unknown</option>
       </select>
-      <input v-model="selectedName" type="text" placeholder="write name">
+      <input v-model="name" type="text" placeholder="write name">
       <button @click="applyFilter">Apply</button>
     </div>
   </header>
   
   <main>
     <div class="pagination">
-      <select v-model="selectedPage" @change="paginate">
-        <option v-for="page in responseData?.info?.pages" :key="page" :value="page">Page {{ page }}</option>
+      <select v-model="currentPage" @change="paginate">
+        <option v-for="page in pagesCount" :key="page" :value="page">Page #{{ page }}</option>
       </select>
     </div>
     <div class="main-content">
-      <div v-if="responseData" class="card-container">
-        <div class="card-wrapper" v-for="character in responseData.results" :key="character.id">
+      <div v-if="characters" class="card-container">
+        <div class="card-wrapper" v-for="character in characters" :key="character.id">
           <card :name="character.name" :image="character.image" :status="character.status" :location="character.location.name" />
         </div>
       </div>
