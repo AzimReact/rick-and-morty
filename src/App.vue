@@ -17,7 +17,6 @@ export default {
     
     const applyFilter = async () => {
       await fetchData(responseData, selectedStatus, selectedName )
-      selectedName.value = ''
     }
 
     const paginate = async () => {
