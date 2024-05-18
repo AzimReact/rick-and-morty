@@ -8,22 +8,27 @@ export default {
   setup() {
     const responseData = ref(null);
     const selectedStatus = ref('');
+    const selectedName = ref('');
+    const selectedPage = ref(1); 
 
     onMounted(() => {
       fetchData(responseData);
     });
     
     const applyFilter = async () => {
-      await fetchData(responseData, selectedStatus);
-    };
-    
-    const paginate = async (page) => {
-      await fetchData(responseData, selectedStatus, page);
+      await fetchData(responseData, selectedStatus, selectedName )
+      selectedName.value = ''
+    }
+
+    const paginate = async () => {
+      await fetchData(responseData, selectedStatus, selectedName, selectedPage.value);
     };
 
     return {
       responseData,
       selectedStatus,
+      selectedName,
+      selectedPage,
       applyFilter,
       paginate
     };
@@ -41,25 +46,24 @@ export default {
         <option value="dead">Dead</option>
         <option value="unknown">Unknown</option>
       </select>
+      <input v-model="selectedName" type="text" placeholder="write name">
       <button @click="applyFilter">Apply</button>
     </div>
   </header>
   
   <main>
     <div class="pagination">
-      <button class="pag-btn" @click="paginate(page)" v-for="page in responseData?.info?.pages" :key="page">
-        {{ page }}
-      </button>
+      <select v-model="selectedPage" @change="paginate">
+        <option v-for="page in responseData?.info?.pages" :key="page" :value="page">Page {{ page }}</option>
+      </select>
     </div>
     <div class="main-content">
       <div v-if="responseData" class="card-container">
-  
         <div class="card-wrapper" v-for="character in responseData.results" :key="character.id">
           <card :name="character.name" :image="character.image" :status="character.status" :location="character.location.name" />
         </div>
       </div>
       <div v-else>
-  
         <p>Loading...</p>
       </div>
     </div>
@@ -74,7 +78,7 @@ export default {
   color: white;
 }
 
-select, option, button{
+select, option, button, input{
   color: black;
 }
 
@@ -90,17 +94,6 @@ select, option, button{
   display: flex;
   justify-content: space-evenly;
   flex-wrap: wrap;
-}
-
-.pag-btn{
-  width: 25px;
-  height: 25px;
-}
-
-.pag-btn:hover{
-  transition: 0.3s;
-  background-color: lightslategrey;
-  cursor: pointer;
 }
 
 .main-content{
